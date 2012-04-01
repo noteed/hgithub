@@ -16,6 +16,7 @@ main :: IO ()
 main = (processCmd =<<) $ cmdArgs $
   modes
     [ cmdRepositoryList
+    , cmdRepositoryCreate
     ]
   &= summary versionString
   &= program "hgithub"
@@ -26,6 +27,10 @@ versionString =
 
 data Cmd =
     CmdRepositoryList
+  | CmdRepositoryCreate
+  { cmdRepositoryCreateName :: String
+  , cmdRepositoryCreateDescription :: Maybe String
+  }
   deriving (Data, Typeable)
 
 cmdRepositoryList :: Cmd
@@ -34,6 +39,22 @@ cmdRepositoryList = CmdRepositoryList
   &= explicit
   &= name "list-repositories"
 
+cmdRepositoryCreate :: Cmd
+cmdRepositoryCreate = CmdRepositoryCreate
+  { cmdRepositoryCreateName = def
+    &= typ "NAME"
+    &= explicit
+    &= name "name"
+    &= help "Repository name."
+  , cmdRepositoryCreateDescription = def
+    &= typ "STRING"
+    &= explicit
+    &= name "description"
+    &= help "Repository description."
+  } &= help "Create a new repository."
+    &= explicit
+    &= name "create-repository"
+
 processCmd :: Cmd -> IO ()
 processCmd CmdRepositoryList{..} = do
   usernamePassword <- readUsernamePassword "github-username-password.txt"
@@ -41,6 +62,15 @@ processCmd CmdRepositoryList{..} = do
   case mrepos of
     Nothing -> putStrLn "Some error occured."
     Just repos -> mapM_ print repos
+
+processCmd CmdRepositoryCreate{..} = do
+  usernamePassword <- readUsernamePassword "github-username-password.txt"
+  mrepo <- repositoryCreate usernamePassword
+    cmdRepositoryCreateName
+    cmdRepositoryCreateDescription
+  case mrepo of
+    Nothing -> putStrLn "Some error occured."
+    Just repo -> print repo
 
 readUsernamePassword :: FilePath -> IO String
 readUsernamePassword filename = do
