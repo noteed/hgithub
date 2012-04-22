@@ -1,6 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
+-- |
+-- Module      : Network.GitHub
+-- Copyright   : (c) 2012 Vo Minh Thu,
+--
+-- License     : BSD-style
+-- Maintainer  : thu@hypered.be
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- This module provides bindings to the GitHub API v3.
 module Network.GitHub where
 
 import Control.Applicative ((<$>), (<*>))
@@ -27,6 +37,9 @@ apiGetRequest usernamePassword uri parameters = do
         { requestHeaders = ("Authorization", auth) : parameters }
   return request'
 
+-- | Construct a request from a `username:password` bytestring (suitable for a
+-- Basic Auth scheme), a URI (starting with a `/`, e.g. `/user/repos`), and a
+-- body.
 apiPostRequest :: B.ByteString -> String -> L.ByteString -> IO (Request IO)
 apiPostRequest usernamePassword uri body = do
   let auth = "Basic " `B.append` B64.encode usernamePassword
@@ -54,6 +67,8 @@ apiGet usernamePassword uri parameters = do
         _ -> return Nothing
     _ -> return Nothing
 
+-- | Execute a POST agains the specified URI (e.g. `/user/repos`) using the
+-- supplied `username:password` and body.
 apiPost :: FromJSON a => String -> String -> L.ByteString -> IO (Maybe a)
 apiPost usernamePassword uri body = do
   request <- apiPostRequest (B.pack usernamePassword) uri body
@@ -71,6 +86,7 @@ apiPost usernamePassword uri body = do
 repositoryList :: String -> IO (Maybe [Repository])
 repositoryList usernamePassword = apiGet usernamePassword "/user/repos" []
 
+-- | Create a new repository from a given name and description.
 repositoryCreate :: String -> String -> Maybe String -> IO (Maybe Repository)
 repositoryCreate usernamePassword name description =
   apiPost usernamePassword "/user/repos" $ encode CreateRepository

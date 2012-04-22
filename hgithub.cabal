@@ -7,8 +7,14 @@ category:            Network
 license:             BSD3
 license-file:        LICENSE
 author:              Vo Minh Thu
-maintainer:          noteed@gmail.com
+maintainer:          thu@hypered.be
+homepage:            https://github.com/noteed/hgithub
+bug-reports:         https://github.com/noteed/hgithub/issues
 build-type:          Simple
+
+source-repository head
+  type: git
+  location: https://github.com/noteed/hgithub
 
 library
   build-depends:       base == 4.*,
